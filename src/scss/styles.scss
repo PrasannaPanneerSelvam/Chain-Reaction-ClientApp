@@ -1,0 +1,29 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: aqua;
+}
+
+.board-container {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.tile-row {
+  display: inline-flex;
+}
+
+.tile {
+  display: inline-block;
+  height: 50px;
+  width: 50px;
+  background-color: black;
+  color: white;
+  border: 1px solid blue;
+}
