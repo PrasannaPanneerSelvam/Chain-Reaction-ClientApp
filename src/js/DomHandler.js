@@ -52,18 +52,23 @@ class DomHandler {
   #colNo;
   #noOfPlayers;
   #currentTurn;
+  #isOnline;
+  #thisPlayer;
 
   #boardTiles;
   #board;
   #clickEnabled;
   #setBorderColor;
 
-  constructor(boardId) {
+  constructor(boardId, gameRules = {}) {
     this.#rowNo = 8;
     this.#colNo = 8;
     this.#boardTiles = [];
     this.#clickEnabled = [];
-    this.#noOfPlayers = 4;
+    this.#noOfPlayers = gameRules.noOfPlayers ?? 4;
+
+    this.#isOnline = gameRules.isOnline ?? false;
+    this.#thisPlayer = gameRules.playerId;
 
     const container = document.getElementById(boardId),
       rowDivs = [...container.getElementsByClassName('tile-row')];
@@ -122,7 +127,9 @@ class DomHandler {
 
     this.#board.callOnCells(
       this.#currentTurn,
-      releasePossibleCells,
+      !this.#isOnline || this.#thisPlayer === this.#currentTurn
+        ? releasePossibleCells
+        : blockOtherCells,
       blockOtherCells
     );
   }
@@ -138,6 +145,18 @@ class DomHandler {
           this.#board.addNucleus(row, col, this.#currentTurn, uiCbObject);
           this.#changeTurn();
         });
+  }
+
+  // API for executing commands from server
+  makeMoveForOthers(row, col) {
+    const uiCbObject = this.#getUICallbacks();
+    const success = this.#board.addNucleus(
+      row,
+      col,
+      this.#currentTurn,
+      uiCbObject
+    );
+    if (success) this.#changeTurn();
   }
 }
 

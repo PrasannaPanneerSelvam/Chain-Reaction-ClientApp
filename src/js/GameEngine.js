@@ -44,7 +44,7 @@ class ChainReaction {
   addNucleus(row, col, color, uiUpdateCallbackObject) {
     // Add check for valid row col when exposing api
     const cellColor = this.#board[row][col].color;
-    if (cellColor !== -1 && cellColor !== color) return;
+    if (cellColor !== -1 && cellColor !== color) return 0;
 
     this.#board[row][col].value++;
     this.#board[row][col].color = color;
@@ -60,6 +60,8 @@ class ChainReaction {
         color
       );
     }
+
+    return 1;
   }
 
   #isGameOver({ playerOut, playerWins }) {
