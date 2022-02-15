@@ -87,6 +87,18 @@ class ChainReaction {
   #doChainReaction(inputRow, inputCol, inputColor, uiUpdateCallbackObject) {
     let queue = [[inputRow, inputCol]];
 
+    function updateQueuedElementsUI(inputQueue) {
+      for (let idx = 0; idx < inputQueue.length; idx++) {
+        const [row, col] = inputQueue[idx];
+        uiUpdateCallbackObject.cellUpdateCallback(
+          row,
+          col,
+          this.#board[row][col].value,
+          this.#board[row][col].color
+        );
+      }
+    }
+
     // TODO :: Make this recursive with requestAnimation frame
     while (queue.length !== 0) {
       const newQueue = [];
@@ -113,26 +125,41 @@ class ChainReaction {
       for (let idx = 0; idx < newQueue.length; idx++) {
         const [row, col] = newQueue[idx];
 
-        const occupyingNewCell = this.#board[row][col].color !== inputColor;
+        const currentCellColor = this.#board[row][col].color,
+          occupyingNewCell = currentCellColor !== inputColor;
+
         this.#playerCells[inputColor] += occupyingNewCell;
-        this.#playerCells[this.#board[row][col].color] -= occupyingNewCell;
+        if (currentCellColor !== -1)
+          this.#playerCells[currentCellColor] -= occupyingNewCell;
 
         this.#board[row][col].value++;
         this.#board[row][col].color = inputColor;
       }
 
       // Updating UI
-      for (let idx = 0; idx < queue.length; idx++) {
-        const [row, col] = queue[idx];
-        uiUpdateCallbackObject.cellUpdateCallback(
-          row,
-          col,
-          this.#board[row][col].value,
-          this.#board[row][col].color
-        );
-      }
+      updateQueuedElementsUI.call(this, queue);
 
-      queue = this.#isGameOver(uiUpdateCallbackObject) ? [] : newQueue;
+      if (this.#isGameOver(uiUpdateCallbackObject)) {
+        queue = [];
+        updateQueuedElementsUI.call(this, newQueue);
+      } else {
+        queue = newQueue;
+      }
+    }
+  }
+
+  callOnCells(color, possibleCellCallback, blockedCellCallback) {
+    for (let row = 0; row < this.#rowNo; row++) {
+      for (let col = 0; col < this.#colNo; col++) {
+        if (
+          this.#board[row][col].color === -1 ||
+          this.#board[row][col].color === color
+        ) {
+          possibleCellCallback(row, col);
+        } else {
+          blockedCellCallback(row, col);
+        }
+      }
     }
   }
 }

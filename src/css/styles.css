@@ -46,6 +46,5 @@ body {
 
 .lock-tile {
   cursor: not-allowed !important;
-  pointer-events: none !important;
 }
 /*# sourceMappingURL=styles.css.map */
