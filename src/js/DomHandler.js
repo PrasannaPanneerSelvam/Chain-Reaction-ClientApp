@@ -1,26 +1,41 @@
-const colorMap = ['#ff0000', '#0000ff', '#00ff00', '#ffff00'];
+import GameEngine from './GameEngine.js';
+
+const colorMap = (function () {
+  const rootStyles = getComputedStyle(document.body);
+  return [1, 2, 3, 4].map(i =>
+    rootStyles
+      .getPropertyValue('--player-' + i)
+      .trim()
+      .slice(1, -1)
+  );
+})();
 
 class DomHandler {
   #rowNo;
   #colNo;
+  #noOfPlayers;
 
   #boardTiles;
   #board;
+  #setBorderColor;
 
-  constructor(boardId, board) {
+  constructor(boardId) {
     this.#rowNo = 8;
     this.#colNo = 8;
     this.#boardTiles = [];
+    this.#noOfPlayers = 4;
 
     const container = document.getElementById(boardId),
       rowDivs = [...container.getElementsByClassName('tile-row')];
+
+    this.#setBorderColor = color =>
+      container.style.setProperty('--tile-border-color', colorMap[color]);
 
     rowDivs.forEach(rowElem =>
       this.#boardTiles.push([...rowElem.getElementsByClassName('tile')])
     );
 
-    this.#board = board;
-
+    this.#board = new GameEngine(this.#rowNo, this.#colNo, this.#noOfPlayers);
     this.#setClickEvents();
   }
 
@@ -32,16 +47,24 @@ class DomHandler {
     cell.style.background = colorMap[color] ?? '';
   }
 
+  #getUICallbacks() {
+    return {
+      cellUpdateCallback: this.#tileUpdate.bind(this),
+      playerOut: playerNumber => console.log(`Player ${playerNumber} lost!`),
+      playerWins: playerNumber => console.log(`Player ${playerNumber} wins!!!`),
+    };
+  }
+
   #setClickEvents() {
     // TODO :: Set color based on the player's color & turn
     const oolor = 0;
 
-    const bindedTileUpdate = this.#tileUpdate.bind(this);
+    const uiCbObject = this.#getUICallbacks();
 
     for (let row = 0; row < this.#rowNo; row++)
       for (let col = 0; col < this.#colNo; col++)
         this.#boardTiles[row][col].addEventListener('click', () =>
-          this.#board.addNucleus(row, col, oolor, bindedTileUpdate)
+          this.#board.addNucleus(row, col, oolor, uiCbObject)
         );
   }
 }

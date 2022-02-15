@@ -6,11 +6,19 @@
   box-sizing: border-box;
 }
 
+:root {
+  --player-1: '#ff0000';
+  --player-2: '#0000ff';
+  --player-3: '#00ff00';
+  --player-4: '#ffff00';
+}
+
 body {
   background-color: aqua;
 }
 
 .board-container {
+  --tile-border-color: #ff0000;
   display: inline-flex;
   flex-direction: column;
 }
@@ -25,5 +33,10 @@ body {
   width: 50px;
   background-color: black;
   color: white;
-  border: 1px solid blue;
+  border: 1px solid var(--tile-border-color);
+}
+
+.lock-tile {
+  cursor: not-allowed !important;
+  pointer-events: none !important;
 }

@@ -11,12 +11,16 @@ class ChainReaction {
   #colNo;
 
   #board;
+  #playerCells;
 
-  constructor() {
-    this.#rowNo = 8;
-    this.#colNo = 8;
+  constructor(rowNum, colNum, noOfPlayers) {
+    this.#rowNo = rowNum;
+    this.#colNo = colNum;
 
     this.#board = [];
+    this.#playerCells = [];
+
+    for (let i = 0; i < noOfPlayers; i++) this.#playerCells.push(0);
 
     this.#initializeBoard();
   }
@@ -37,23 +41,50 @@ class ChainReaction {
     }
   }
 
-  addNucleus(row, col, color, cellUpdateCallback) {
+  addNucleus(row, col, color, uiUpdateCallbackObject) {
     // Add check for valid row col when exposing api
     const cellColor = this.#board[row][col].color;
     if (cellColor !== -1 && cellColor !== color) return;
 
     this.#board[row][col].value++;
-
-    cellUpdateCallback = cellUpdateCallback ?? (() => {});
+    this.#board[row][col].color = color;
+    this.#playerCells[color] += cellColor === -1;
 
     if (this.#board[row][col].maxValue === this.#board[row][col].value) {
-      this.#doChainReaction(row, col, color, cellUpdateCallback);
+      this.#doChainReaction(row, col, color, uiUpdateCallbackObject);
     } else {
-      cellUpdateCallback(row, col, this.#board[row][col].value, color);
+      uiUpdateCallbackObject.cellUpdateCallback(
+        row,
+        col,
+        this.#board[row][col].value,
+        color
+      );
     }
   }
 
-  #doChainReaction(inputRow, inputCol, inputColor, cellUpdateCallback) {
+  #isGameOver({ playerOut, playerWins }) {
+    const gameOverFor = [];
+    let livePlayers = [];
+
+    for (let idx = 0; idx < 4; idx++) {
+      if (this.#playerCells[idx] === 0) {
+        gameOverFor.push(idx);
+        this.#playerCells[idx] = -1;
+      } else if (this.#playerCells[idx] > 0) {
+        livePlayers.push(idx);
+      }
+    }
+
+    if (livePlayers.length === 1) {
+      playerWins(livePlayers[0]);
+      return 1;
+    }
+
+    if (gameOverFor.length !== 0) gameOverFor.forEach(playerOut);
+    return 0;
+  }
+
+  #doChainReaction(inputRow, inputCol, inputColor, uiUpdateCallbackObject) {
     let queue = [[inputRow, inputCol]];
 
     // TODO :: Make this recursive with requestAnimation frame
@@ -68,6 +99,7 @@ class ChainReaction {
         // Updating bursting cell
         this.#board[row][col].value = 0;
         this.#board[row][col].color = -1;
+        this.#playerCells[inputColor]--;
 
         // Adding cells affected by burst
         if (row > 0) newQueue.push([row - 1, col]);
@@ -80,6 +112,11 @@ class ChainReaction {
       // Updating adjacent cell affected by burst
       for (let idx = 0; idx < newQueue.length; idx++) {
         const [row, col] = newQueue[idx];
+
+        const occupyingNewCell = this.#board[row][col].color !== inputColor;
+        this.#playerCells[inputColor] += occupyingNewCell;
+        this.#playerCells[this.#board[row][col].color] -= occupyingNewCell;
+
         this.#board[row][col].value++;
         this.#board[row][col].color = inputColor;
       }
@@ -87,7 +124,7 @@ class ChainReaction {
       // Updating UI
       for (let idx = 0; idx < queue.length; idx++) {
         const [row, col] = queue[idx];
-        cellUpdateCallback(
+        uiUpdateCallbackObject.cellUpdateCallback(
           row,
           col,
           this.#board[row][col].value,
@@ -95,7 +132,7 @@ class ChainReaction {
         );
       }
 
-      queue = newQueue;
+      queue = this.#isGameOver(uiUpdateCallbackObject) ? [] : newQueue;
     }
   }
 }
