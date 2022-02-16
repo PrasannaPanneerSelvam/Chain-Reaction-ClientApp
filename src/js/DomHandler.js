@@ -179,6 +179,10 @@ class DomHandler {
 
     this.#socketCb = cb;
   }
+
+  populateBoard(input) {
+    this.#board.populateBoard(input, this.#tileUpdate.bind(this));
+  }
 }
 
 export default DomHandler;

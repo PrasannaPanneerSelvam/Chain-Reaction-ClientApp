@@ -3,7 +3,6 @@ import DomHandler from './DomHandler.js';
 
 import {
   updateGame,
-  sendMoveToServer,
   connectInSocket,
   createRoom,
   joinRoom,
@@ -14,21 +13,29 @@ function createOnlineGame(playerId) {
   const GameDom = new DomHandler('board', {
     isOnline: true,
     playerId,
+    noOfPlayers: 2,
   });
 
   return GameDom;
 }
 
-function RoomCreationCallback({ roomDetails, roomId, playerId }) {
-  console.log('Room id', roomId);
-  createOnlineGame(playerId);
+function RoomJoiningCallback({ roomDetails, roomId, playerId }) {
+  console.log('Room details', roomDetails, roomId, playerId);
+  const game = createOnlineGame(playerId);
+  updateGame(game);
 
   // Set user's url with roomid in query parsms
 }
 
 function createNewOnlineGame(noOfPlayers) {
   connectInSocket();
-  createRoom(noOfPlayers, RoomCreationCallback);
+  createRoom(noOfPlayers, RoomJoiningCallback);
+}
+
+function joinNewOnlineGame(noOfPlayers) {
+  connectInSocket();
+  joinRoom(noOfPlayers, null, RoomJoiningCallback);
 }
 
 window.__createNewOnlineGame = createNewOnlineGame;
+window.__joinNewOnlineGame = joinNewOnlineGame;

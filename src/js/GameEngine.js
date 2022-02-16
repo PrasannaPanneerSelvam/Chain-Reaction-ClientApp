@@ -41,6 +41,22 @@ class ChainReaction {
     }
   }
 
+  populateBoard(boardValues, calleeUpdateCallback) {
+    let cell;
+    for (let row = 0, idx = 0; row < this.#rowNo; row++) {
+      for (let col = 0; col < this.#colNo; col++, idx++) {
+        // This is capable for a max of 9 players only (single digit)
+        if (boardValues[idx] !== 0) {
+          cell = this.#board[row][col];
+          cell.value = boardValues[idx] % 10;
+          cell.color = parseInt(boardValues[idx] / 10);
+
+          calleeUpdateCallback(row, col, cell.value, cell.color);
+        }
+      }
+    }
+  }
+
   addNucleus(row, col, color, uiUpdateCallbackObject) {
     // Add check for valid row col when exposing api
     const cellColor = this.#board[row][col].color;
