@@ -59,6 +59,7 @@ class DomHandler {
   #board;
   #clickEnabled;
   #setBorderColor;
+  #socketCb;
 
   constructor(boardId, gameRules = {}) {
     this.#rowNo = 8;
@@ -69,6 +70,7 @@ class DomHandler {
 
     this.#isOnline = gameRules.isOnline ?? false;
     this.#thisPlayer = gameRules.playerId;
+    this.#socketCb = gameRules.emitToSocket ?? (() => {});
 
     const container = document.getElementById(boardId),
       rowDivs = [...container.getElementsByClassName('tile-row')];
@@ -142,13 +144,25 @@ class DomHandler {
         this.#boardTiles[row][col].addEventListener('click', () => {
           if (!this.#clickEnabled[row][col]) return;
 
-          this.#board.addNucleus(row, col, this.#currentTurn, uiCbObject);
-          this.#changeTurn();
+          const success = this.#board.addNucleus(
+            row,
+            col,
+            this.#currentTurn,
+            uiCbObject
+          );
+
+          if (success) {
+            this.#changeTurn();
+            this.#socketCb(row, col);
+          }
         });
   }
 
   // API for executing commands from server
-  makeMoveForOthers(row, col) {
+  makeMoveForOthers(cellNo) {
+    const row = parseInt(cellNo / this.#colNo),
+      col = cellNo % this.#colNo;
+
     const uiCbObject = this.#getUICallbacks();
     const success = this.#board.addNucleus(
       row,
@@ -157,6 +171,13 @@ class DomHandler {
       uiCbObject
     );
     if (success) this.#changeTurn();
+  }
+
+  setSocketCallback(cb) {
+    if (!cb || cb.constructor !== Function)
+      throw new Error('Socket emission callback should be a function');
+
+    this.#socketCb = cb;
   }
 }
 

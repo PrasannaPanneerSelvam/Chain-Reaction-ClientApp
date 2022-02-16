@@ -1,4 +1,4 @@
-function createBoard() {
+function createNewBoard() {
   function createElementWithTag(tag, className, id) {
     const div = document.createElement(tag);
 
@@ -12,6 +12,9 @@ function createBoard() {
     rowNo = 8,
     colNo = 8;
 
+  // Removing existing children
+  [...container.children].forEach(child => container.removeChild(child));
+
   for (let row = 0; row < rowNo; row++) {
     const rowDiv = createElementWithTag('div', 'tile-row');
 
@@ -24,4 +27,4 @@ function createBoard() {
   }
 }
 
-export default createBoard;
+export default createNewBoard;
