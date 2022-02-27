@@ -69,6 +69,8 @@ class DomHandler {
     this.#noOfPlayers = gameRules.noOfPlayers ?? 4;
 
     this.#isOnline = gameRules.isOnline ?? false;
+
+    // Meant only for online game
     this.#thisPlayer = gameRules.playerId;
     this.#socketCb = gameRules.emitToSocket ?? (() => {});
 

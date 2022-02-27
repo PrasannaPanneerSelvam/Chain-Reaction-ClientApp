@@ -8,22 +8,32 @@ import {
   joinRoom,
 } from './SocketHandler.js';
 
-function createOnlineGame(playerId, noOfPlayers = 2) {
+function createNewGame(options) {
   createNewBoard();
-  const GameDom = new DomHandler('board', {
+  return new DomHandler('board', options);
+}
+
+function createOnlineGame(playerId, noOfPlayers = 2) {
+  const options = {
     isOnline: true,
     playerId,
     noOfPlayers,
-  });
+  };
 
-  return GameDom;
+  return createNewGame(options);
+}
+
+function createOfflineGame(noOfPlayers) {
+  return createNewGame({ noOfPlayers });
 }
 
 function formUrl(roomId) {
-  return (location.origin
-    + (location.pathname !== '/' ? location.pathname : '')
-    + '?roomId=' + roomId
-  )
+  return (
+    location.origin +
+    (location.pathname !== '/' ? location.pathname : '') +
+    '?roomId=' +
+    roomId
+  );
 }
 
 function RoomJoiningCallback(responseObject) {
